@@ -77,7 +77,11 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    raise (Non_Implante "«tree2mtree» à compléter") 
+    match t with
+    | St(_) -> []
+    | Leaf(_) -> []
+    | Tree(a, b, c) -> [(1, Tree(a, b, c))]
+  ;;
 
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
