@@ -51,7 +51,11 @@ module PTree : PTREE = struct
   (* @Precondition  : aucune                                                  *)
   (* @Postcondition : la valeur retournée est positive et correspond à taille *)
   let rec height t =
-    raise (Non_Implante "«height» à compléter")
+    match t with
+    | Leaf(_) | St(_) -> 0
+    | Tree(_, _, []) -> 1
+    | Tree(l, r, hdSubTree::tlSubTree) -> max (1 + height hdSubTree) (height (Tree(l, r, tlSubTree)))
+  ;;
 
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
