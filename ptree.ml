@@ -77,13 +77,16 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
+    let rec foldTree2List tr =
       fold_left (
-        fun l tree -> 
+        fun lst tree -> 
           match tree with
-          | Leaf(_) -> l
-          | St(_) -> l
-          | Tree(a, b, c) -> (length(l) + 1, Tree(a, b, c))::l
-        ) [] t
+          | Leaf(_) -> lst
+          | St(_) -> lst
+          | Tree(a, b, c) -> (length(lst) + 1, Tree(a, b, c))::lst
+        ) [] tr
+      in
+        foldTree2List t 
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
