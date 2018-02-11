@@ -83,7 +83,7 @@ module PTree : PTREE = struct
           | Leaf(_) -> lst
           | St(_) -> lst
           | Tree(a, b, c) -> (length(lst) + 1, Tree(a, b, c))::lst
-        ) [] t
+        ) [] [t]
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
