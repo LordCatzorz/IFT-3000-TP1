@@ -64,8 +64,12 @@ module PTree : PTREE = struct
   (* @Description   : traduit un arbre prrofTree en un arbre strTree          *)
   (* @Precondition  : aucune                                                  *)
   (* @Postcondition : l'arbre retourné est correct                            *)
-  let ptree2stree formula2str rule2str pt =
-    raise (Non_Implante "«ptree2stree» à compléter")
+  let rec ptree2stree formula2str rule2str pt =
+    match pt with
+    | PF(formula) -> Leaf(formula2str formula)
+    | PT(rule, formula, treeList) -> Tree(rule2str rule, formula2str formula,
+        map (fun x -> ptree2stree formula2str rule2str x) treeList)
+  ;;
 
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
