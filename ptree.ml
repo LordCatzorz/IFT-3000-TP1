@@ -1,7 +1,7 @@
 (* -------------------------------------------------------------------------- *)
 (* ----------------------- TP1 - IFT-3000 - Hiver 2018 ---------------------- *)
 (* -------------------------------------------------------------------------- *)
-(* Matricule étudiant: .........                                              *)
+(* Matricule étudiant: 111125564                                              *)
 (* -------------------------------------------------------------------------- *)
 (* -- PRINCIPALE FICHIER DU TP: FONCTIONS À COMPLÉTER ----------------------- *)
 (* -------------------------------------------------------------------------- *)
@@ -39,8 +39,11 @@ module PTree : PTREE = struct
   (* @Precondition  : aucune                                                  *)
   (* @Postcondition : aucune                                                  *)
   let rec includeSep sep l =
-    raise (Non_Implante "«includeSep» à compléter") 
- 
+    match l with
+    | [] -> sep
+    | e::r -> sep ^ e ^ (includeSep sep r)
+  ;;
+    
 
   (* -- À IMPLANTER/COMPLÉTER (12 PTS) -------------------------------------- *)
   (* @Fonction      : height : strTree -> int                                 *)
