@@ -32,6 +32,19 @@ module PTree : PTREE = struct
 (* -------------------------------------------------------------------------- *)
   open List
 
+  let rec tree2mtreeAsIs (acc : (int * strTree) list) (lstTree : strTree list) =
+    match lstTree with
+      | [] -> acc
+      | tree::rlstTree -> 
+        tree2mtreeAsIs (acc@[(length acc + 1,
+          match tree with
+          | St(_) -> tree 
+          | Leaf(_) -> tree
+          | Tree(a,b,c) -> Tree(a, b, c)
+        )]) rlstTree
+      
+
+
   (* -- À IMPLANTER/COMPLÉTER (8 PTS) --------------------------------------- *)
   (* @Fonction      : includeSep : string -> string list -> string            *)
   (* @Description   : retourne une liste d'elts en format string, séparés par
@@ -77,6 +90,10 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
+    tree2mtreeAsIs [] [t] 
+
+  (*
+    if l = 0 then 
       fold_left (
         fun lst tree -> 
           match tree with
@@ -92,6 +109,7 @@ module PTree : PTREE = struct
                 map (fun tooLongSubTree -> Tree(a,b, St(length(lst)) 
 
         ) [] [t]
+  *)
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
