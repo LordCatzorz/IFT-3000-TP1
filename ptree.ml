@@ -82,7 +82,15 @@ module PTree : PTREE = struct
           match tree with
           | Leaf(_) -> lst
           | St(_) -> lst
-          | Tree(a, b, c) -> (length(lst) + 1, Tree(a, b, c))::lst
+          | Tree(a, b, c) -> 
+
+            if height Tree(a,b,c) <= l then Tree(a,b,c)
+            else 
+              let correct tooLong = 
+                partition (fun subTree -> (height subtree) > l) c
+              in
+                map (fun tooLongSubTree -> Tree(a,b, St(length(lst)) 
+
         ) [] [t]
   ;;
 
