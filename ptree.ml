@@ -77,7 +77,23 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    raise (Non_Implante "«tree2mtree» à compléter") 
+    match t with
+    | St(_) -> []
+    | Leaf(_) -> []
+    | Tree (a, b, c) -> fold_left(fun accPair tree -> 
+      if height tree > l then
+        (*Subdiviser*)
+        (length accPair + 1, Tree(a, b, 
+          fold_left(fun accToSt tree2 ->
+            match tree2 with
+            | St(_) -> tree2::accToSt
+            | Leaf(_) -> tree2::accToSt
+            | Tree(_) -> accToSt@[St(length accToSt + length accPair + 1)]
+        ) [] c ))::accPair
+      else
+        (length accPair + 1, tree)::accPair
+    ) [] [t]
+  ;;
 
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
