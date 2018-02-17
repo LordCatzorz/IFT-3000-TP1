@@ -32,34 +32,6 @@ module PTree : PTREE = struct
 (* -------------------------------------------------------------------------- *)
   open List
 
-  let listOfPairToListOfSecondElement lst =
-    (fun (_, lstA) -> lstA) (split lst)
-  ;;
-
-  let convertTreeListToStList startIndex treeList =
-    fold_left (fun resultList _ -> St(startIndex + length resultList + 1)::resultList) [] treeList
-  ;;
-
-  let rec tree2mtreeAsIs (acc : (int * strTree) list) (lstTree : strTree list) =
-    fold_left (fun acc2 tree ->
-      match tree with
-      | St(_) -> (length (acc@acc2) + 1, tree)::acc2
-      | Leaf(_) -> (length (acc@acc2)  + 1, tree)::acc2
-      | Tree(a, b, c) -> (length (acc@acc2) + 1, Tree(a, b, convertTreeListToStList (length (acc@acc2) + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs acc2 c))))::acc2@(tree2mtreeAsIs acc2 c)
-    ) acc lstTree
-  ;;
-      match lstTree with
-      | [] -> acc
-      | tree::rlstTree -> 
-        tree2mtreeAsIs (acc@[(length acc + 1,
-          match tree with
-          | St(_) -> tree 
-          | Leaf(_) -> tree
-          | Tree(a,b,c) -> Tree(a,b, convertTreeListToStList (length acc + length rlstTree + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs acc c)))
-        )]) rlstTree
-  ;;     
-
-
   (* -- À IMPLANTER/COMPLÉTER (8 PTS) --------------------------------------- *)
   (* @Fonction      : includeSep : string -> string list -> string            *)
   (* @Description   : retourne une liste d'elts en format string, séparés par
@@ -99,13 +71,37 @@ module PTree : PTREE = struct
         map (fun x -> ptree2stree formula2str rule2str x) treeList)
   ;;
 
+  
+  let listOfPairToListOfSecondElement lst =
+    (fun (_, lstA) -> lstA) (split lst)
+  ;;
+
+  let convertTreeListToStList startIndex treeList =
+    fold_left (fun resultList _ -> St(startIndex + length resultList + 1)::resultList) [] treeList
+  ;;
+
+  let rec tree2mtreeAsIs maxHeight acc lstTree =
+    fold_left (fun acc2 tree ->
+      match tree with
+      | St(_) -> (length (acc@acc2) + 1, tree)::acc2
+      | Leaf(_) -> (length (acc@acc2)  + 1, tree)::acc2
+      | Tree(a, b, c) -> 
+        (length (acc@acc2) + 1, 
+          Tree(a, b, 
+            convertTreeListToStList (length (acc@acc2) + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs maxHeight acc2 c))
+          )
+        )::acc2@
+          (if (height (Tree(a,b,c))) > maxHeight then (tree2mtreeAsIs maxHeight acc2 c) else [])
+    ) acc lstTree
+  ;;
+
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
   (* @Description   : transforme un arbre en liste de sous-arbres             *)
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    tree2mtreeAsIs [] [t] 
+    tree2mtreeAsIs l [] [t] 
 
   (*
     if l = 0 then 
