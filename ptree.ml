@@ -37,7 +37,7 @@ module PTree : PTREE = struct
   ;;
 
   let convertTreeListToStList startIndex treeList =
-    fold_left (fun resultList _ -> resultList@[St(startIndex + length resultList + 1)]) [] treeList
+    fold_left (fun resultList _ -> St(startIndex + length resultList + 1)::resultList) [] treeList
   ;;
 
   let rec tree2mtreeAsIs (acc : (int * strTree) list) (lstTree : strTree list) =
@@ -48,7 +48,7 @@ module PTree : PTREE = struct
           match tree with
           | St(_) -> tree 
           | Leaf(_) -> tree
-          | Tree(a,b,c) -> Tree(a,b, convertTreeListToStList (length acc + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs acc c)))
+          | Tree(a,b,c) -> Tree(a,b, convertTreeListToStList (length acc + length rlstTree + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs acc c)))
         )]) rlstTree
   ;;     
 
