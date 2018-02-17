@@ -32,6 +32,10 @@ module PTree : PTREE = struct
 (* -------------------------------------------------------------------------- *)
   open List
 
+  let listOfPairToListOfSecondElement lst =
+    (fun (_, lstA) -> lstA) (split lst)
+  ;;
+
   let rec tree2mtreeAsIs (acc : (int * strTree) list) (lstTree : strTree list) =
     match lstTree with
       | [] -> acc
@@ -40,9 +44,9 @@ module PTree : PTREE = struct
           match tree with
           | St(_) -> tree 
           | Leaf(_) -> tree
-          | Tree(a,b,c) -> Tree(a, b, c)
+          | Tree(a,b,c) -> Tree(a,b, [] listOfPairToListOfSecondElement (tree2mtreeAsIs acc c))
         )]) rlstTree
-      
+  ;;     
 
 
   (* -- À IMPLANTER/COMPLÉTER (8 PTS) --------------------------------------- *)
