@@ -41,7 +41,14 @@ module PTree : PTREE = struct
   ;;
 
   let rec tree2mtreeAsIs (acc : (int * strTree) list) (lstTree : strTree list) =
-    match lstTree with
+    fold_left (fun acc2 tree ->
+      match tree with
+      | St(_) -> (length (acc@acc2) + 1, tree)::acc2
+      | Leaf(_) -> (length (acc@acc2)  + 1, tree)::acc2
+      | Tree(a, b, c) -> (length (acc@acc2) + 1, Tree(a, b, convertTreeListToStList (length (acc@acc2) + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs acc2 c))))::acc2@(tree2mtreeAsIs acc2 c)
+    ) acc lstTree
+  ;;
+      match lstTree with
       | [] -> acc
       | tree::rlstTree -> 
         tree2mtreeAsIs (acc@[(length acc + 1,
