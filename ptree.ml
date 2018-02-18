@@ -86,7 +86,7 @@ module PTree : PTREE = struct
 
   let getTreeAsTreeWithSubTreeAsRef currentNumber t =
     match t with
-    | Tree(a, b, c) -> Tree(a, b, fold_left (fun acc t' -> acc@[((fun (r, _) -> r) (getTreeReferencePair (length acc + currentNumber + 1) t'))]) [] c)
+    | Tree(a, b, c) -> Tree(a, b, fold_left (fun acc t' -> acc@[((fun (r, _) -> r) (getTreeReferencePair (length acc + currentNumber) t'))]) [] c)
     | _ -> t
   ;;
 
@@ -96,7 +96,7 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    foldStrTree (fun acc t' ->  acc@[(length acc + 1, getTreeAsTreeWithSubTreeAsRef (length acc + 1) t')]) [] t
+    foldStrTree (fun acc t' -> acc@[(length acc + 1, getTreeAsTreeWithSubTreeAsRef (length acc + 1) t')]) [] t
   ;;
 
 
