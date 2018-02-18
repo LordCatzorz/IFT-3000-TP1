@@ -71,13 +71,37 @@ module PTree : PTREE = struct
         map (fun x -> ptree2stree formula2str rule2str x) treeList)
   ;;
 
+  let getTreeReferencePair number t = 
+    match t with
+    | St(_) -> (t, []);
+    | Leaf(_) -> (t, []);
+    | Tree(a,b,c) -> (St(number), [t])
+  ;;
+
+  let rec foldStrTree f v0 t =
+    match t with
+    | Tree(a, b, c) -> fold_left (fun r t' -> foldStrTree f r t') (f v0 t) c
+    | _ -> v0
+  ;;
+
+  let getTreeAsTreeWithSubTreeAsRef currentNumber t =
+    match t with
+    | Tree(a, b, c) -> Tree(a, b, fold_left (fun acc t' -> acc@[((fun (r, _) -> r) (getTreeReferencePair (length acc + currentNumber + 1) t'))]) [] c)
+    | _ -> t
+  ;;
+
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
   (* @Description   : transforme un arbre en liste de sous-arbres             *)
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    match t with
+    foldStrTree (fun acc t' ->  acc@[(length acc + 1, getTreeAsTreeWithSubTreeAsRef (length acc + 1) t')]) [] t
+  ;;
+
+
+
+    (*match t with
     | St(_) -> []
     | Leaf(_) -> []
     | Tree (a, b, c) -> fold_left(fun accPair tree -> 
@@ -93,7 +117,7 @@ module PTree : PTREE = struct
       else
         (length accPair + 1, tree)::accPair
     ) [] [t]
-  ;;
+  ;;*)
 
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
