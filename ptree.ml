@@ -84,13 +84,15 @@ module PTree : PTREE = struct
     | _ -> v0
   ;;
 
-  let getTreeAsTreeWithSubTreeAsRef maxh currentNumber t =
-    if height t < maxh then
-      t
-    else     
-      match t with
-      | Tree(a, b, c) -> Tree(a, b, fold_left (fun acc t' -> acc@[((fun (r, _) -> r) (getTreeReferencePair (length acc + currentNumber) t'))]) [] c)
-      | _ -> t
+  let getTreeAsTreeWithSubTreeAsRef maxh currentNumber t =   
+    match t with
+    | Tree(a, b, c) -> Tree(a, b, fold_left (fun acc t' -> 
+        if height t' <= maxh then
+          acc@[t']
+        else
+          acc@[((fun (r, _) -> r) (getTreeReferencePair (length acc + currentNumber) t'))]
+      ) [] c)
+    | _ -> t
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
