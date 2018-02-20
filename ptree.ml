@@ -81,7 +81,7 @@ module PTree : PTREE = struct
   let rec foldStrTree f v0 t =
     match t with
     | Tree(a, b, c) -> fold_left (fun r t' -> foldStrTree f r t') (f v0 t) c
-    | _ -> v0
+    | _ -> f v0 t
   ;;
 
   let getTreeAsTreeWithSubTreeAsRef maxh currentNumber t =   
@@ -102,13 +102,64 @@ module PTree : PTREE = struct
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
     foldStrTree (fun acc t' -> 
-      if height t <= l + 1 then
-        match acc with
-        | [] -> (1, t)::acc
-        | _ -> acc
-      else
-        acc@[(length acc + 1, getTreeAsTreeWithSubTreeAsRef l (length acc + 1) t')]) [] t
+      Printf.printf "Matching height:%d acc:%d\n" (height t') (length acc);
+      match t' with
+      | Tree(a, b, []) -> 
+        (
+          Printf.printf "  t': Tree(a, b, [])\n";
+          match acc with
+          | [] -> 
+            (
+              Printf.printf "    acc: []\n";
+              [(1, t')]
+            )
+          | (n, x)::r ->
+            (
+              Printf.printf "    acc: (n, x)::r\n";
+              match x with
+              | Tree(a', b', c') -> (n, Tree(a', b', St(n+1)::c'))::r@[(n+1, t')]
+              | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+            )
+        )
+      | Tree(a, b, c) ->
+        (
+          Printf.printf "  t': Tree(a, b, c)\n";
+          match acc with 
+          | [] -> 
+            (
+              Printf.printf "    acc: []\n";
+              [(1, Tree(a, b, []))]
+            )
+          | (n, x)::r -> 
+            (
+              Printf.printf "    acc: (n, x)::r %d\n" n;
+              match x with 
+              | Tree(a', b', c') -> (n+1, Tree(a, b, []))::(n, Tree(a', b', St(n+1)::c'))::r
+              | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+            )
+        )
+      | _ ->
+        (
+          Printf.printf "  t': _\n";
+          match acc with
+          | [] -> 
+            (
+              Printf.printf "    acc: []\n";
+              []
+            )
+          | (n, x)::r ->
+            (
+              Printf.printf "    acc: (n, x)::r\n";
+              match x with
+              | Tree(a', b', c') -> (n, Tree(a', b', t'::c'))::r
+              | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+            )
+        )
+    ) [] t
   ;;
+
+
+
 
 
 
