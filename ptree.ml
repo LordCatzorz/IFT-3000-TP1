@@ -113,62 +113,66 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-  let splitTree =
+
+  let splitTree = 
     foldStrTree moveFirstElementToEnd (fun acc t' -> 
       let nInAcc = length acc + 1 in
+      let ruleOnEmptyNode =
+      (
+        Printf.printf "  t': Tree(a, b, [])\n";
+        match acc with
+        | [] -> 
+          (
+            Printf.printf "    acc: []\n";
+            [(1, t')]
+          )
+        | (n, x)::r ->
+          (
+            Printf.printf "    acc: (n, x)::r\n";
+            match x with
+            | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(nInAcc)]))::r@[(nInAcc, t')]
+            | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+          )
+      ) in
+      let ruleOnNode a b =
+      (
+        Printf.printf "  t': Tree(a, b, c)\n";
+        match acc with 
+        | [] -> 
+          (
+            Printf.printf "    acc: []\n";
+            [(1, Tree(a, b, []))]
+          )
+        | (n, x)::r -> 
+          (
+            Printf.printf "    acc: (n, x)::r %d\n" n;
+            match x with 
+            | Tree(a', b', c') -> (nInAcc, Tree(a, b, []))::(n, Tree(a', b', c'@[St(nInAcc)]))::r
+            | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+          )
+      ) in
+      let ruleOnLeaf =
+      (
+        Printf.printf "  t': _\n";
+        match acc with
+        | [] -> 
+          (
+            Printf.printf "    acc: []\n";
+            []
+          )
+        | (n, x)::r ->
+          (
+            Printf.printf "    acc: (n, x)::r\n";
+            match x with
+            | Tree(a', b', c') -> (n, Tree(a', b', c'@[t']))::r
+            | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+          )
+      ) in
       Printf.printf "Matching height:%d acc:%d\n" (height t') (length acc);
       match t' with
-      | Tree(a, b, []) -> 
-        (
-          Printf.printf "  t': Tree(a, b, [])\n";
-          match acc with
-          | [] -> 
-            (
-              Printf.printf "    acc: []\n";
-              [(1, t')]
-            )
-          | (n, x)::r ->
-            (
-              Printf.printf "    acc: (n, x)::r\n";
-              match x with
-              | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(nInAcc)]))::r@[(nInAcc, t')]
-              | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-            )
-        )
-      | Tree(a, b, c) ->
-        (
-          Printf.printf "  t': Tree(a, b, c)\n";
-          match acc with 
-          | [] -> 
-            (
-              Printf.printf "    acc: []\n";
-              [(1, Tree(a, b, []))]
-            )
-          | (n, x)::r -> 
-            (
-              Printf.printf "    acc: (n, x)::r %d\n" n;
-              match x with 
-              | Tree(a', b', c') -> (nInAcc, Tree(a, b, []))::(n, Tree(a', b', c'@[St(nInAcc)]))::r
-              | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-            )
-        )
-      | _ ->
-        (
-          Printf.printf "  t': _\n";
-          match acc with
-          | [] -> 
-            (
-              Printf.printf "    acc: []\n";
-              []
-            )
-          | (n, x)::r ->
-            (
-              Printf.printf "    acc: (n, x)::r\n";
-              match x with
-              | Tree(a', b', c') -> (n, Tree(a', b', c'@[t']))::r
-              | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-            )
-        )
+      | Tree(a, b, []) -> ruleOnEmptyNode 
+      | Tree(a, b, c) -> ruleOnNode a b
+      | _ -> ruleOnLeaf
     )
   in
     sortPairByFirstElement (splitTree [] t)
