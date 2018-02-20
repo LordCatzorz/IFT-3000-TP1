@@ -78,9 +78,10 @@ module PTree : PTREE = struct
     | Tree(a,b,c) -> (St(number), [t])
   ;;
 
-  let rec foldStrTree f v0 t =
+  let rec foldStrTree postNodeTraitement f v0 t =
+
     match t with
-    | Tree(a, b, c) -> fold_left (fun r t' -> foldStrTree f r t') (f v0 t) c
+    | Tree(a, b, c) -> postNodeTraitement (fold_left (fun r t' -> foldStrTree postNodeTraitement f r t') (f v0 t) c)
     | _ -> f v0 t
   ;;
 
@@ -95,13 +96,26 @@ module PTree : PTREE = struct
     | _ -> t
   ;;
 
+  let moveFirstElementToEnd l =
+    match l with
+    | [] -> []
+    | x::r -> r@[x]
+  ;;
+
+  let sortPairByFirstElement l =
+    sort (fun (first, _) (second, _) -> compare first second) l
+  ;;
+
+
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
   (* @Description   : transforme un arbre en liste de sous-arbres             *)
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    foldStrTree (fun acc t' -> 
+  let splitTree =
+    foldStrTree moveFirstElementToEnd (fun acc t' -> 
+      let nInAcc = length acc + 1 in
       Printf.printf "Matching height:%d acc:%d\n" (height t') (length acc);
       match t' with
       | Tree(a, b, []) -> 
@@ -117,7 +131,7 @@ module PTree : PTREE = struct
             (
               Printf.printf "    acc: (n, x)::r\n";
               match x with
-              | Tree(a', b', c') -> (n, Tree(a', b', St(n+1)::c'))::r@[(n+1, t')]
+              | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(nInAcc)]))::r@[(nInAcc, t')]
               | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
             )
         )
@@ -134,7 +148,7 @@ module PTree : PTREE = struct
             (
               Printf.printf "    acc: (n, x)::r %d\n" n;
               match x with 
-              | Tree(a', b', c') -> (n+1, Tree(a, b, []))::(n, Tree(a', b', St(n+1)::c'))::r
+              | Tree(a', b', c') -> (nInAcc, Tree(a, b, []))::(n, Tree(a', b', c'@[St(nInAcc)]))::r
               | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
             )
         )
@@ -151,11 +165,13 @@ module PTree : PTREE = struct
             (
               Printf.printf "    acc: (n, x)::r\n";
               match x with
-              | Tree(a', b', c') -> (n, Tree(a', b', t'::c'))::r
+              | Tree(a', b', c') -> (n, Tree(a', b', c'@[t']))::r
               | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
             )
         )
-    ) [] t
+    )
+  in
+    sortPairByFirstElement (splitTree [] t)
   ;;
 
 
