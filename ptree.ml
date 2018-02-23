@@ -71,28 +71,46 @@ module PTree : PTREE = struct
         map (fun x -> ptree2stree formula2str rule2str x) treeList)
   ;;
 
-  
-  let listOfPairToListOfSecondElement lst =
-    (fun (_, lstA) -> lstA) (split lst)
+  let rec foldStrTree postNodeTraitement f v0 t =
+    match t with
+    | Tree(a, b, c) -> postNodeTraitement (fold_left (fun r t' -> foldStrTree postNodeTraitement f r t') (f v0 t) c)
+    | _ -> f v0 t
   ;;
 
-  let convertTreeListToStList startIndex treeList =
-    fold_left (fun resultList _ -> St(startIndex + length resultList + 1)::resultList) [] treeList
+  let moveFirstElementToEnd l =
+    match l with
+    | [] -> []
+    | x::r -> r@[x]
   ;;
 
-  let rec tree2mtreeAsIs maxHeight acc lstTree =
-    fold_left (fun acc2 tree ->
-      match tree with
-      | St(_) -> (length (acc@acc2) + 1, tree)::acc2
-      | Leaf(_) -> (length (acc@acc2)  + 1, tree)::acc2
-      | Tree(a, b, c) -> 
-        (length (acc@acc2) + 1, 
-          Tree(a, b, 
-            convertTreeListToStList (length (acc@acc2) + 1) (listOfPairToListOfSecondElement (tree2mtreeAsIs maxHeight acc2 c))
-          )
-        )::acc2@
-          (if (height (Tree(a,b,c))) > maxHeight then (tree2mtreeAsIs maxHeight acc2 c) else [])
-    ) acc lstTree
+  let sortPairByFirstElement l =
+    sort (fun (first, _) (second, _) -> compare first second) l
+  ;;
+
+  let ruleOnLeaf acc newTree =
+    match acc with
+    | [] -> []
+    | (n, x)::r ->
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[newTree]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+
+  let ruleOnNode acc a b =
+    match acc with 
+    | [] -> [(1, Tree(a, b, []))]
+    | (n, x)::r -> 
+        match x with 
+        | Tree(a', b', c') -> (length acc + 1, Tree(a, b, []))::(n, Tree(a', b', c'@[St(length acc + 1)]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+  ;;
+
+  let ruleOnEmptyNode acc newTree =
+    match acc with
+    | [] -> [(1, newTree)]
+    | (n, x)::r ->
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(length acc + 1)]))::r@[(length acc + 1, newTree)]
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
@@ -101,26 +119,15 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    tree2mtreeAsIs l [] [t] 
-
-  (*
-    if l = 0 then 
-      fold_left (
-        fun lst tree -> 
-          match tree with
-          | Leaf(_) -> lst
-          | St(_) -> lst
-          | Tree(a, b, c) -> 
-
-            if height Tree(a,b,c) <= l then Tree(a,b,c)
-            else 
-              let correct tooLong = 
-                partition (fun subTree -> (height subtree) > l) c
-              in
-                map (fun tooLongSubTree -> Tree(a,b, St(length(lst)) 
-
-        ) [] [t]
-  *)
+  let splitTree = 
+    foldStrTree moveFirstElementToEnd (fun acc t' -> 
+        match t' with
+        | Tree(a, b, []) -> ruleOnEmptyNode acc t'
+        | Tree(a, b, c) -> ruleOnNode acc a b
+        | _ -> ruleOnLeaf acc t'
+    )
+  in
+    sortPairByFirstElement (splitTree [] t)
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
