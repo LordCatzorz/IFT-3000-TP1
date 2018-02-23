@@ -137,8 +137,10 @@ module PTree : PTREE = struct
                       à l'arbre, ou aux arbres, à afficher                    *)
   (* @Precondition  : aucune                                                  *)
   (* @Postcondition : aucune                                                  *)
-  let mtree2pretty tree2pr id2pr sep tl = 
-    raise (Non_Implante "«mtree2pretty» à compléter")
+  let mtree2pretty tree2pr id2pr sep tl =
+    match tl with
+    | (id, tree)::[] -> [(tree2pr tree)]
+    | _ -> fold_left (fun acc (id, tree) -> acc@[(id2pr id); (tree2pr tree)^sep]) [] tl 
 
 (* -------------------------------------------------------------------------- *)
 (* Fin partie code (implantation) à compléter ------------------------------- *)
