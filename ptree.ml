@@ -106,6 +106,60 @@ module PTree : PTREE = struct
     sort (fun (first, _) (second, _) -> compare first second) l
   ;;
 
+  let ruleOnLeaf acc newTree =
+  (
+    Printf.printf "  ruleOnLeaf\n";
+    match acc with
+    | [] -> 
+      (
+        Printf.printf "    acc: []\n";
+        []
+      )
+    | (n, x)::r ->
+      (
+        Printf.printf "    acc: (n, x)::r\n";
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[newTree]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+      )
+  )
+
+  let ruleOnNode acc a b =
+  (
+    Printf.printf "  ruleOnNode\n";
+    match acc with 
+    | [] -> 
+      (
+        Printf.printf "    acc: []\n";
+        [(1, Tree(a, b, []))]
+      )
+    | (n, x)::r -> 
+      (
+        Printf.printf "    acc: (n, x)::r %d\n" n;
+        match x with 
+        | Tree(a', b', c') -> (length acc + 1, Tree(a, b, []))::(n, Tree(a', b', c'@[St(length acc + 1)]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+      )
+  )
+
+  let ruleOnEmptyNode acc newTree =
+  (
+    Printf.printf "  ruleOnEmptyNode\n";
+    match acc with
+    | [] -> 
+      (
+        Printf.printf "    acc: []\n";
+        [(1, newTree)]
+      )
+    | (n, x)::r ->
+      (
+        Printf.printf "    acc: (n, x)::r\n";
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(length acc + 1)]))::r@[(length acc + 1, newTree)]
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+      )
+  )
+
 
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
@@ -113,66 +167,29 @@ module PTree : PTREE = struct
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-
   let splitTree = 
     foldStrTree moveFirstElementToEnd (fun acc t' -> 
-      let nInAcc = length acc + 1 in
-      let ruleOnEmptyNode =
-      (
-        Printf.printf "  t': Tree(a, b, [])\n";
-        match acc with
-        | [] -> 
-          (
-            Printf.printf "    acc: []\n";
-            [(1, t')]
-          )
-        | (n, x)::r ->
-          (
-            Printf.printf "    acc: (n, x)::r\n";
-            match x with
-            | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(nInAcc)]))::r@[(nInAcc, t')]
-            | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-          )
-      ) in
-      let ruleOnNode a b =
-      (
-        Printf.printf "  t': Tree(a, b, c)\n";
-        match acc with 
-        | [] -> 
-          (
-            Printf.printf "    acc: []\n";
-            [(1, Tree(a, b, []))]
-          )
-        | (n, x)::r -> 
-          (
-            Printf.printf "    acc: (n, x)::r %d\n" n;
-            match x with 
-            | Tree(a', b', c') -> (nInAcc, Tree(a, b, []))::(n, Tree(a', b', c'@[St(nInAcc)]))::r
-            | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-          )
-      ) in
-      let ruleOnLeaf =
-      (
-        Printf.printf "  t': _\n";
-        match acc with
-        | [] -> 
-          (
-            Printf.printf "    acc: []\n";
-            []
-          )
-        | (n, x)::r ->
-          (
-            Printf.printf "    acc: (n, x)::r\n";
-            match x with
-            | Tree(a', b', c') -> (n, Tree(a', b', c'@[t']))::r
-            | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-          )
-      ) in
       Printf.printf "Matching height:%d acc:%d\n" (height t') (length acc);
-      match t' with
-      | Tree(a, b, []) -> ruleOnEmptyNode 
-      | Tree(a, b, c) -> ruleOnNode a b
-      | _ -> ruleOnLeaf
+      if (l = 0) || (length acc = 0) || (height t' > l) then
+      (
+        Printf.printf "  (l = 0) || (nInAcc = 1) || (height t' > l)\n";
+        match t' with
+        | Tree(a, b, []) -> ruleOnEmptyNode acc t'
+        | Tree(a, b, c) -> ruleOnNode acc a b
+        | _ -> ruleOnLeaf acc t'
+      )
+      else
+      (
+        if height t' = l then
+        (
+          match t' with
+          | Tree(a,b,c) -> ruleOnEmptyNode acc t'
+          | _ -> ruleOnLeaf acc t'
+        )
+        else
+          acc
+      )
+
     )
   in
     sortPairByFirstElement (splitTree [] t)
