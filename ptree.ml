@@ -72,6 +72,8 @@ module PTree : PTREE = struct
   ;;
 
   let rec foldStrTree postNodeTraitement f v0 t =
+  (*  Permet de parcourir l'arbre Depth-first en applicant à chaque sous-arbre d'un noeud la fonction f 
+      et puis après chaque noeud, la fonction postNodeTraitement *)
     match t with
     | Tree(a, b, c) -> postNodeTraitement (fold_left (fun r t' -> foldStrTree postNodeTraitement f r t') (f v0 t) c)
     | _ -> f v0 t
@@ -109,6 +111,8 @@ module PTree : PTREE = struct
   ;;
   
   let rec replaceOccurenceOfStInTree stNumber withTree inTree =
+  (*  Parcourt chaque sous-arbre d'un arbre inTree récursivement pour remplacer la référence stNumber
+      par un arbre withTree *)
     match inTree with
     | Tree(a, b, c) -> 
         Tree(a,b, fold_left (fun acc t -> 
@@ -121,6 +125,8 @@ module PTree : PTREE = struct
   ;;
 
   let rec renumberOccurenceOfStInTree replacementDict inTree =
+  (*  Parcourt chaque sous-arbre d'un arbre inTree récursivement pour remplacer la référence 
+      des ST selon une règle d'un dictionnaire replacementDict *)
     match inTree with
     | Tree(a, b, c) -> Tree(a,b, fold_left (fun acc t -> 
           match t with
@@ -132,11 +138,13 @@ module PTree : PTREE = struct
     | _ -> inTree
 
   let renumberMtree lst =
+  (*  Parcourt chaque élément d'un mtree pour renuméroter les références sans espacement *)
     let replaceDict = mapi (fun newNumber (oldN, _) -> (oldN, newNumber + 1)) lst in
       fold_left (fun acc (n, t) -> acc@[(assoc n replaceDict, renumberOccurenceOfStInTree replaceDict t)]) [] lst
   ;;
 
   let mergeMtreeAtLevel l lst =
+  (*  Parcourt un mTree pour que chaque arbre ait une hauteur plus petite que la valeur de l. *)
     if l = 0 then
       lst
     else
