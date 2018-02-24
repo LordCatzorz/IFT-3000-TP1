@@ -88,6 +88,7 @@ module PTree : PTREE = struct
   ;;
 
   let ruleOnLeaf acc newTree =
+  (* Ajouter à l'arbre parent si présent. Sinon ne rien faire *)
     match acc with
     | [] -> []
     | (n, x)::r ->
@@ -97,20 +98,13 @@ module PTree : PTREE = struct
   ;;
 
   let ruleOnNode acc a b c =
+  (*  Ajouter à la liste cette arbre, en enlevant ses sous-arbres. 
+      Ajouter une référence à l'arbre parent si présent. *)
     match acc with 
     | [] -> [(1, Tree(a, b, []))]
     | (n, x)::r -> 
         match x with 
         | Tree(a', b', c') -> (length acc + 1, Tree(a, b, []))::(n, Tree(a', b', c'@[St(length acc + 1)]))::r
-        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-  ;;
-
-  let ruleOnEmptyNode acc newTree =
-    match acc with
-    | [] -> [(1, newTree)]
-    | (n, x)::r ->
-        match x with
-        | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(length acc + 1)]))::r@[(length acc + 1, newTree)]
         | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
   ;;
   
@@ -154,11 +148,7 @@ module PTree : PTREE = struct
             if height t > l then
               (n, t)::(f (rev r))
             else
-              let result =
-                fold_left(fun acc (n', t') -> 
-                  (n', replaceOccurenceOfStInTree n t t')::acc
-                ) [] r
-              in
+              let result = fold_left(fun acc (n', t') -> (n', replaceOccurenceOfStInTree n t t')::acc) [] r in
                 match result with
                 | [] -> [(n, t)]
                 | _ -> f result
@@ -174,7 +164,6 @@ module PTree : PTREE = struct
   let splitTree = 
     foldStrTree moveFirstElementToEnd (fun acc t' -> 
       match t' with
-      | Tree(a, b, []) -> ruleOnEmptyNode acc t'
       | Tree(a, b, c) -> ruleOnNode acc a b c
       | _ -> ruleOnLeaf acc t'
     )
