@@ -113,16 +113,7 @@ module PTree : PTREE = struct
         | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(length acc + 1)]))::r@[(length acc + 1, newTree)]
         | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
   ;;
-
-  let ruleOnMustCopyTree acc newTree =
-    match acc with
-    | [] -> [(1, newTree)]
-    | (n, x)::r ->
-        match x with
-        | Tree(a', b', c') -> (n, Tree(a', b', c'@[newTree]))::r
-        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
-  ;;
-
+  
   let rec replaceOccurenceOfStInTree stNumber withTree inTree =
     match inTree with
     | Tree(a, b, c) -> 
