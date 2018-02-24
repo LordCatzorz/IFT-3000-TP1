@@ -13,6 +13,7 @@
 (* Implantation                                                               *)
 (******************************************************************************)
 module PTree : PTREE = struct
+
   (* Utilisée par le testeur et correcteur du Tp *)
   exception Non_Implante of string
 
