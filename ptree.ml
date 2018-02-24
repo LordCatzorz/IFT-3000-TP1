@@ -12,7 +12,7 @@
 (******************************************************************************)
 (* Implantation                                                               *)
 (******************************************************************************)
-module PTree (* : PTREE *) = struct
+module PTree : PTREE = struct
   (* Utilisée par le testeur et correcteur du Tp *)
   exception Non_Implante of string
 
@@ -125,20 +125,13 @@ module PTree (* : PTREE *) = struct
   let rec replaceOccurenceOfStInTree stNumber withTree inTree =
     match inTree with
     | Tree(a, b, c) -> 
-      (
-        Printf.printf "Replacement dans l'arbre %s %s avec %d sous-arbres\n" a b (length c);
         Tree(a,b, fold_left (fun acc t -> 
           match t with
-          | St(n) -> acc@[(if n = stNumber then (Printf.printf "Remplacement effectué de la référence %d\n" n; withTree) else (Printf.printf "Remplacement non éffectué de la référence %d\n" n; St(n)))]
+          | St(n) -> acc@[(if n = stNumber then withTree else St(n))]
           | Leaf(_) -> acc@[t]
           | _ -> acc@[(replaceOccurenceOfStInTree stNumber withTree t)]
         ) [] c)
-      )
-    | _ -> 
-      (
-        Printf.printf "N'était pas un arbre\n";
-        inTree
-      )
+    | _ -> inTree
   ;;
 
   let rec renumberOccurenceOfStInTree replacementDict inTree =
@@ -166,27 +159,17 @@ module PTree (* : PTREE *) = struct
           match revLst with
           | [] -> []
           | (n, t)::r ->
-          (
-            Printf.printf "Travailler la référence %d qui a une hauteur de %d\n" n (height t);
             if height t > l then
-            (
-              Printf.printf "height t=%d > l=%d\n" (height t) l;
               (n, t)::(f (rev r))
-            )
             else
-            (
-              Printf.printf "height t=%d <= l=%d\n" (height t) l;
               let result =
                 fold_left(fun acc (n', t') -> 
-                  Printf.printf "fold n'= %d" n';
                   (n', replaceOccurenceOfStInTree n t t')::acc
                 ) [] r
               in
                 match result with
                 | [] -> [(n, t)]
                 | _ -> f result
-            )
-          )
       in renumbermtree (rev (f lst))
   ;;
 
