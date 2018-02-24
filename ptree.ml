@@ -71,22 +71,115 @@ module PTree : PTREE = struct
         map (fun x -> ptree2stree formula2str rule2str x) treeList)
   ;;
 
+  let rec foldStrTree postNodeTraitement f v0 t =
+    match t with
+    | Tree(a, b, c) -> postNodeTraitement (fold_left (fun r t' -> foldStrTree postNodeTraitement f r t') (f v0 t) c)
+    | _ -> f v0 t
+  ;;
+
+  let moveFirstElementToEnd l =
+    match l with
+    | [] -> []
+    | x::r -> r@[x]
+  ;;
+
+  let sortPairByFirstElement l =
+    sort (fun (first, _) (second, _) -> compare first second) l
+  ;;
+
+  let ruleOnLeaf acc newTree =
+    match acc with
+    | [] -> []
+    | (n, x)::r ->
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[newTree]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+  ;;
+
+  let ruleOnNode acc a b c =
+    match acc with 
+    | [] -> [(1, Tree(a, b, []))]
+    | (n, x)::r -> 
+        match x with 
+        | Tree(a', b', c') -> (length acc + 1, Tree(a, b, []))::(n, Tree(a', b', c'@[St(length acc + 1)]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+  ;;
+
+  let ruleOnEmptyNode acc newTree =
+    match acc with
+    | [] -> [(1, newTree)]
+    | (n, x)::r ->
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[St(length acc + 1)]))::r@[(length acc + 1, newTree)]
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+  ;;
+  
+  let rec replaceOccurenceOfStInTree stNumber withTree inTree =
+    match inTree with
+    | Tree(a, b, c) -> 
+        Tree(a,b, fold_left (fun acc t -> 
+          match t with
+          | St(n) -> acc@[(if n = stNumber then withTree else St(n))]
+          | Leaf(_) -> acc@[t]
+          | _ -> acc@[(replaceOccurenceOfStInTree stNumber withTree t)]
+        ) [] c)
+    | _ -> inTree
+  ;;
+
+  let rec renumberOccurenceOfStInTree replacementDict inTree =
+    match inTree with
+    | Tree(a, b, c) -> Tree(a,b, fold_left (fun acc t -> 
+          match t with
+          | St(n) -> acc@[St(assoc n replacementDict)]
+          | Leaf(_) -> acc@[t]
+          | _ -> acc@[(renumberOccurenceOfStInTree replacementDict t)]
+        ) [] c)
+
+    | _ -> inTree
+
+  let renumberMtree lst =
+    let replaceDict = mapi (fun newNumber (oldN, _) -> (oldN, newNumber + 1)) lst in
+      fold_left (fun acc (n, t) -> acc@[(assoc n replaceDict, renumberOccurenceOfStInTree replaceDict t)]) [] lst
+  ;;
+
+  let mergeMtreeAtLevel l lst =
+    if l = 0 then
+      lst
+    else
+      let rec f lst' =
+        let revLst = rev lst' in
+          match revLst with
+          | [] -> []
+          | (n, t)::r ->
+            if height t > l then
+              (n, t)::(f (rev r))
+            else
+              let result =
+                fold_left(fun acc (n', t') -> 
+                  (n', replaceOccurenceOfStInTree n t t')::acc
+                ) [] r
+              in
+                match result with
+                | [] -> [(n, t)]
+                | _ -> f result
+      in renumberMtree (rev (f lst))
+  ;;
+
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
   (* @Description   : transforme un arbre en liste de sous-arbres             *)
   (* @Precondition  : level doit être positive ou nulle                       *)
   (* @Postcondition : les arbres retournées sont correctement liées           *)
   let tree2mtree ?(l=0) t =
-    let rec foldTree2List tr =
-      fold_left (
-        fun lst tree -> 
-          match tree with
-          | Leaf(_) -> lst
-          | St(_) -> lst
-          | Tree(a, b, c) -> (length(lst) + 1, Tree(a, b, c))::lst
-        ) [] tr
-      in
-        foldTree2List t 
+  let splitTree = 
+    foldStrTree moveFirstElementToEnd (fun acc t' -> 
+      match t' with
+      | Tree(a, b, []) -> ruleOnEmptyNode acc t'
+      | Tree(a, b, c) -> ruleOnNode acc a b c
+      | _ -> ruleOnLeaf acc t'
+    )
+  in
+    mergeMtreeAtLevel l (sortPairByFirstElement (splitTree [] t))
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
@@ -96,8 +189,10 @@ module PTree : PTREE = struct
                       à l'arbre, ou aux arbres, à afficher                    *)
   (* @Precondition  : aucune                                                  *)
   (* @Postcondition : aucune                                                  *)
-  let mtree2pretty tree2pr id2pr sep tl = 
-    raise (Non_Implante "«mtree2pretty» à compléter")
+  let mtree2pretty tree2pr id2pr sep tl =
+    match tl with
+    | (id, tree)::[] -> [(tree2pr tree)]
+    | _ -> fold_left (fun acc (id, tree) -> acc@[(id2pr id); (tree2pr tree)^sep]) [] tl 
 
 (* -------------------------------------------------------------------------- *)
 (* Fin partie code (implantation) à compléter ------------------------------- *)
