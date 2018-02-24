@@ -12,8 +12,7 @@
 (******************************************************************************)
 (* Implantation                                                               *)
 (******************************************************************************)
-module PTree : PTREE = struct
-
+module PTree (* : PTREE *) = struct
   (* Utilisée par le testeur et correcteur du Tp *)
   exception Non_Implante of string
 
@@ -94,8 +93,9 @@ module PTree : PTREE = struct
         match x with
         | Tree(a', b', c') -> (n, Tree(a', b', c'@[newTree]))::r
         | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+  ;;
 
-  let ruleOnNode acc a b =
+  let ruleOnNode acc a b c =
     match acc with 
     | [] -> [(1, Tree(a, b, []))]
     | (n, x)::r -> 
@@ -113,6 +113,103 @@ module PTree : PTREE = struct
         | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
   ;;
 
+  let ruleOnMustCopyTree acc newTree =
+    match acc with
+    | [] -> [(1, newTree)]
+    | (n, x)::r ->
+        match x with
+        | Tree(a', b', c') -> (n, Tree(a', b', c'@[newTree]))::r
+        | _ -> [] (*Ne devrait pas avoir de non-arbre dans cette liste.*)
+  ;;
+
+  let rec replaceOccurenceOfStInTree stNumber withTree inTree =
+    match inTree with
+    | Tree(a, b, c) -> 
+      (
+        Printf.printf "Replacement dans l'arbre %s %s avec %d sous-arbres\n" a b (length c);
+        Tree(a,b, fold_left (fun acc t -> 
+          match t with
+          | St(n) -> (if n = stNumber then (Printf.printf "Remplacement effectué de la référence %d\n" n; withTree) else (Printf.printf "Remplacement non éffectué de la référence %d\n" n; St(n)))::acc
+          | Leaf(_) -> t::acc
+          | _ -> (replaceOccurenceOfStInTree stNumber withTree t)::acc
+        ) [] c)
+      )
+    | _ -> 
+      (
+        Printf.printf "N'était pas un arbre\n";
+        inTree
+      )
+  ;;
+
+  let remergemtree l lst =
+    if l = 0 then
+      lst
+    else
+      let rec f lst' =
+        let revLst = rev lst' in
+          match revLst with
+          | [] -> []
+          | (n, t)::r ->
+          (
+            Printf.printf "Travailler la référence %d qui a une hauteur de %d\n" n (height t);
+            if height t > l then
+              (n, t)::(f (rev r))
+            else
+              let result =
+                fold_left(fun acc (n', t') -> 
+                  (n', replaceOccurenceOfStInTree n t t')::acc
+                ) [] r
+              in
+                f result
+          )
+      in rev (f lst)
+
+(*
+        fold_left (fun (accWorking, accResult) (n, t) ->
+          if height t > l then
+            ([], accWorking)
+          else
+            match accInitial with
+            | [] -> []
+            | 
+        )
+*)
+
+  (*
+    if l = 0 then 
+      lst
+    else
+      Printf.printf "Remerge\n";
+      let f lst' =
+          fold_right (fun (n, t) acc ->
+            Printf.printf "Travailler avec l'élément %d\n" n;
+            if height t > l then
+              acc
+            else
+              fold_left (fun acc' (n', t') ->
+                if n' = n then
+                (
+                  Printf.printf "Retirer l'élément %d\n" n;
+                  acc' (*Retirer l'élément*)
+                )
+                else
+                (
+                  Printf.printf "Replacer dans l'élément %d par l'élément %d \n" n' n;
+                  (n', replaceOccurenceOfStInTree n t t')::acc'
+                )
+              ) [] acc
+          ) lst' lst' in
+      let lst'' = f lst in
+      (
+        Printf.printf "length lst = %d       length lst'' = %d \n" (length lst) (length lst'');
+        if (length lst) = (length lst'') then
+          lst
+        else
+          remergemtree l lst''
+      )
+    *)
+  ;;
+
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
   (* @Fonction      : tree2mtree : ?level:int->strTree->(int * strTree) list  *)
   (* @Description   : transforme un arbre en liste de sous-arbres             *)
@@ -121,10 +218,10 @@ module PTree : PTREE = struct
   let tree2mtree ?(l=0) t =
   let splitTree = 
     foldStrTree moveFirstElementToEnd (fun acc t' -> 
-        match t' with
-        | Tree(a, b, []) -> ruleOnEmptyNode acc t'
-        | Tree(a, b, c) -> ruleOnNode acc a b
-        | _ -> ruleOnLeaf acc t'
+      match t' with
+      | Tree(a, b, []) -> ruleOnEmptyNode acc t'
+      | Tree(a, b, c) -> ruleOnNode acc a b c
+      | _ -> ruleOnLeaf acc t'
     )
   in
     sortPairByFirstElement (splitTree [] t)
