@@ -145,12 +145,12 @@ module PTree : PTREE = struct
 
     | _ -> inTree
 
-  let renumbermtree lst =
+  let renumberMtree lst =
     let replaceDict = mapi (fun newNumber (oldN, _) -> (oldN, newNumber + 1)) lst in
       fold_left (fun acc (n, t) -> acc@[(assoc n replaceDict, renumberOccurenceOfStInTree replaceDict t)]) [] lst
   ;;
 
-  let remergemtree l lst =
+  let mergeMtreeAtLevel l lst =
     if l = 0 then
       lst
     else
@@ -170,7 +170,7 @@ module PTree : PTREE = struct
                 match result with
                 | [] -> [(n, t)]
                 | _ -> f result
-      in renumbermtree (rev (f lst))
+      in renumberMtree (rev (f lst))
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
@@ -187,7 +187,7 @@ module PTree : PTREE = struct
       | _ -> ruleOnLeaf acc t'
     )
   in
-    remergemtree l (sortPairByFirstElement (splitTree [] t))
+    mergeMtreeAtLevel l (sortPairByFirstElement (splitTree [] t))
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
