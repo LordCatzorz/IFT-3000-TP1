@@ -129,9 +129,9 @@ module PTree (* : PTREE *) = struct
         Printf.printf "Replacement dans l'arbre %s %s avec %d sous-arbres\n" a b (length c);
         Tree(a,b, fold_left (fun acc t -> 
           match t with
-          | St(n) -> (if n = stNumber then (Printf.printf "Remplacement effectué de la référence %d\n" n; withTree) else (Printf.printf "Remplacement non éffectué de la référence %d\n" n; St(n)))::acc
-          | Leaf(_) -> t::acc
-          | _ -> (replaceOccurenceOfStInTree stNumber withTree t)::acc
+          | St(n) -> acc@[(if n = stNumber then (Printf.printf "Remplacement effectué de la référence %d\n" n; withTree) else (Printf.printf "Remplacement non éffectué de la référence %d\n" n; St(n)))]
+          | Leaf(_) -> acc@[t]
+          | _ -> acc@[(replaceOccurenceOfStInTree stNumber withTree t)]
         ) [] c)
       )
     | _ -> 
@@ -139,6 +139,22 @@ module PTree (* : PTREE *) = struct
         Printf.printf "N'était pas un arbre\n";
         inTree
       )
+  ;;
+
+  let rec renumberOccurenceOfStInTree replacementDict inTree =
+    match inTree with
+    | Tree(a, b, c) -> Tree(a,b, fold_left (fun acc t -> 
+          match t with
+          | St(n) -> acc@[St(assoc n replacementDict)]
+          | Leaf(_) -> acc@[t]
+          | _ -> acc@[(renumberOccurenceOfStInTree replacementDict t)]
+        ) [] c)
+
+    | _ -> inTree
+
+  let renumbermtree lst =
+    let replaceDict = mapi (fun newNumber (oldN, _) -> (oldN, newNumber + 1)) lst in
+      fold_left (fun acc (n, t) -> acc@[(assoc n replaceDict, renumberOccurenceOfStInTree replaceDict t)]) [] lst
   ;;
 
   let remergemtree l lst =
@@ -153,61 +169,25 @@ module PTree (* : PTREE *) = struct
           (
             Printf.printf "Travailler la référence %d qui a une hauteur de %d\n" n (height t);
             if height t > l then
+            (
+              Printf.printf "height t=%d > l=%d\n" (height t) l;
               (n, t)::(f (rev r))
+            )
             else
+            (
+              Printf.printf "height t=%d <= l=%d\n" (height t) l;
               let result =
                 fold_left(fun acc (n', t') -> 
+                  Printf.printf "fold n'= %d" n';
                   (n', replaceOccurenceOfStInTree n t t')::acc
                 ) [] r
               in
-                f result
+                match result with
+                | [] -> [(n, t)]
+                | _ -> f result
+            )
           )
-      in rev (f lst)
-
-(*
-        fold_left (fun (accWorking, accResult) (n, t) ->
-          if height t > l then
-            ([], accWorking)
-          else
-            match accInitial with
-            | [] -> []
-            | 
-        )
-*)
-
-  (*
-    if l = 0 then 
-      lst
-    else
-      Printf.printf "Remerge\n";
-      let f lst' =
-          fold_right (fun (n, t) acc ->
-            Printf.printf "Travailler avec l'élément %d\n" n;
-            if height t > l then
-              acc
-            else
-              fold_left (fun acc' (n', t') ->
-                if n' = n then
-                (
-                  Printf.printf "Retirer l'élément %d\n" n;
-                  acc' (*Retirer l'élément*)
-                )
-                else
-                (
-                  Printf.printf "Replacer dans l'élément %d par l'élément %d \n" n' n;
-                  (n', replaceOccurenceOfStInTree n t t')::acc'
-                )
-              ) [] acc
-          ) lst' lst' in
-      let lst'' = f lst in
-      (
-        Printf.printf "length lst = %d       length lst'' = %d \n" (length lst) (length lst'');
-        if (length lst) = (length lst'') then
-          lst
-        else
-          remergemtree l lst''
-      )
-    *)
+      in renumbermtree (rev (f lst))
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (40 PTS) -------------------------------------- *)
@@ -224,7 +204,7 @@ module PTree (* : PTREE *) = struct
       | _ -> ruleOnLeaf acc t'
     )
   in
-    sortPairByFirstElement (splitTree [] t)
+    remergemtree l (sortPairByFirstElement (splitTree [] t))
   ;;
 
   (* -- À IMPLANTER/COMPLÉTER (20 PTS) -------------------------------------- *)
